@@ -252,7 +252,7 @@ const imagesList = [
 class App extends Component {
   state = {
     activeTabButton: tabsList[0].tabId,
-    randomImage: imagesList[0],
+    randomImage: '',
     count: 0,
     timer: 60,
   }
@@ -276,7 +276,6 @@ class App extends Component {
 
   renderRandomImage = () => {
     const randomNumber = Math.floor(Math.random() * imagesList.length)
-    console.log(randomNumber)
     return imagesList[randomNumber]
   }
 
