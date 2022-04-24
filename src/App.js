@@ -1,6 +1,8 @@
 import {Component} from 'react'
 import TabButton from './components/TabButton'
 import FruitItem from './components/FruitItem'
+import Header from './components/Header'
+import ScoreCard from './components/ScoreCard'
 import './App.css'
 
 // These are the lists used in the application. You can move them to any component needed.
@@ -252,8 +254,9 @@ const imagesList = [
 class App extends Component {
   state = {
     activeTabButton: tabsList[0].tabId,
-    randomImage: '',
+    randomFruitList: [imagesList[0]],
     count: 0,
+    isScoreCard: false,
     timer: 60,
   }
 
@@ -270,99 +273,92 @@ class App extends Component {
     }
   }
 
+  renderRandomFruit = () => {
+    const randomNum = Math.floor(Math.random() * imagesList.length)
+    return imagesList[randomNum]
+  }
+
   onChangeTab = id => {
     this.setState({activeTabButton: id})
   }
 
-  renderRandomImage = () => {
-    const randomNumber = Math.floor(Math.random() * imagesList.length)
-    return imagesList[randomNumber]
-  }
-
   onChangeRandomFruit = fruitId => {
-    const {id} = this.renderRandomImage()
-    console.log(id)
-    console.log(fruitId)
+    const {randomFruitList} = this.state
+    const randomFruit = this.renderRandomFruit()
+    console.log(randomFruit)
+    this.setState(prevState => ({
+      randomFruitList: [...prevState.randomFruitList, randomFruit],
+    }))
+    const {id} = randomFruitList[randomFruitList.length - 1]
     if (fruitId === id) {
       this.setState(prevState => ({count: prevState.count + 1}))
-      this.setState({
-        randomImage: this.renderRandomImage(),
-      })
     } else {
-      this.setState(prevState => ({count: prevState.count - 1}))
-      this.setState({
-        randomImage: this.renderRandomImage(),
-      })
+      this.setState(prevState => ({isScoreCard: !prevState.isScoreCard}))
     }
   }
 
+  renderPlayingView = () => {
+    this.setState({
+      isScoreCard: false,
+      count: 0,
+      timer: 60,
+    })
+  }
+
   render() {
-    const {activeTabButton, count, randomImage, timer} = this.state
+    const {
+      activeTabButton,
+      randomFruitList,
+      count,
+      isScoreCard,
+      timer,
+    } = this.state
+    console.log(count)
+    const {imageUrl} = randomFruitList[randomFruitList.length - 1]
     const filteredList = imagesList.filter(
       item => item.category === activeTabButton,
     )
     return (
       <div>
-        <div className="header-bg-container">
-          <div className="container d-flex flex-row justify-content-between">
-            <img
-              src="https://assets.ccbp.in/frontend/react-js/match-game-website-logo.png"
-              alt=" website logo"
-              className="website-logo"
-            />
-            <div className="d-flex">
-              <h1 className="score-text">
-                Score<span className="score">{count}</span>
-              </h1>
-              <div className="d-flex align-self-center">
-                <img
-                  src="https://assets.ccbp.in/frontend/react-js/match-game-timer-img.png"
-                  alt="timer"
-                  className="timer-img"
-                />
-                <h1 className="timer-sec">{timer} sec</h1>
-              </div>
-            </div>
-          </div>
-        </div>
+        <Header count={count} timer={timer} />
         <div className="match-game-container">
-          <div className="container pt-5 pb-5">
-            <div className="text-center">
-              <img
-                src={randomImage.imageUrl}
-                className="match-img"
-                alt="match"
-              />
-            </div>
-            <ul
-              className="d-flex flex-row justify-content-center mt-4 mb-4"
-              type="none"
-            >
-              {tabsList.map(item => {
-                const isActive = item.tabId === activeTabButton
-                return (
-                  <TabButton
-                    eachTab={item}
-                    onChangeTab={this.onChangeTab}
-                    isActive={isActive}
-                    key={item.tabId}
+          {isScoreCard ? (
+            <ScoreCard renderPlayingView={this.renderPlayingView} />
+          ) : (
+            <div className="container pt-5 pb-5">
+              <div className="text-center">
+                <img src={imageUrl} className="match-img" alt="match" />
+              </div>
+              <ul
+                className="d-flex flex-row justify-content-center mt-4 mb-4"
+                type="none"
+              >
+                {tabsList.map(item => {
+                  const isActive = item.tabId === activeTabButton
+                  return (
+                    <TabButton
+                      eachTab={item}
+                      onChangeTab={this.onChangeTab}
+                      isActive={isActive}
+                      key={item.tabId}
+                    />
+                  )
+                })}
+              </ul>
+              <ul
+                className="pl-0 d-flex flex-wrap justify-content-center"
+                type="none"
+              >
+                {filteredList.map(item => (
+                  <FruitItem
+                    fruitUrl={item}
+                    key={item.id}
+                    onChangeRandomFruit={this.onChangeRandomFruit}
                   />
-                )
-              })}
-            </ul>
-            <ul
-              className="pl-0 d-flex flex-wrap justify-content-center"
-              type="none"
-            >
-              {filteredList.map(item => (
-                <FruitItem
-                  fruitUrl={item}
-                  key={item.id}
-                  onChangeRandomFruit={this.onChangeRandomFruit}
-                />
-              ))}
-            </ul>
-          </div>
+                ))}
+              </ul>
+            </div>
+          )}
         </div>
       </div>
     )
